@@ -1,0 +1,26 @@
+:host { display: block; color: #2e4439; }
+.page-shell { max-width: 1440px; margin: 0 auto; padding: 0 6.1%; }
+.topbar { height: 82px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e8e9e3; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: #172b25; text-decoration: none; font-size: 20px; font-weight: 750; letter-spacing: -.7px; }
+.brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px 10px 10px 3px; color: #fff; background: #28775d; font-size: 17px; font-weight: 800; }
+.brand-light { color: #739386; font-weight: 450; }
+nav { display: flex; gap: 30px; } nav a, footer > a:last-child { color: #68766f; text-decoration: none; font-size: 13px; font-weight: 600; }
+nav a[aria-current="page"] { color: #28775d; }
+.connection { display: flex; align-items: center; gap: 8px; color: #6d7a73; font-size: 12px; }.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #d4a84f; }
+.hero { padding: 52px 7.2%; margin: 32px 0 64px; border-radius: 20px; background: #f0f4ee; }
+.eyebrow { color: #49846d; font-size: 10px; font-weight: 750; letter-spacing: 1.7px; margin: 0 0 13px; }
+h1 { margin: 0; color: #1e332c; font-size: clamp(40px, 5.2vw, 66px); line-height: 1.02; letter-spacing: -3px; font-weight: 650; } h1 span { color: #4b8b72; }
+.hero-description { max-width: 490px; color: #65756c; line-height: 1.7; font-size: 14px; margin: 22px 0 0; }
+.section-block { margin: 0 0 78px; }.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+h2 { margin: 0; color: #21362e; font-size: clamp(26px, 3vw, 34px); letter-spacing: -1.2px; font-weight: 650; }
+.soft-badge { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 20px; color: #50725f; background: #edf4ee; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.card { border: 1px solid #e8eae4; border-radius: 15px; background: #fff; box-shadow: 0 5px 20px #102e2410; padding: 30px; }
+form { display: flex; flex-direction: column; gap: 20px; }.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.form-field { display: flex; flex-direction: column; gap: 7px; color: #718078; font-size: 11px; font-weight: 650; }
+.form-field input, .form-field textarea { width: 100%; box-sizing: border-box; min-height: 42px; padding: 10px 12px; border: 1px solid #dfe5df; border-radius: 8px; outline: none; color: #2e4439; background: #fff; font: inherit; font-size: 13px; resize: vertical; }
+.form-field input:focus, .form-field textarea:focus { border-color: #4f9979; box-shadow: 0 0 0 3px #4f99791c; }.form-field small { color: #98a29c; font-size: 10px; font-weight: 450; line-height: 1.4; }
+.primary-button { display: flex; align-items: center; justify-content: center; gap: 13px; min-height: 46px; border: 0; border-radius: 9px; color: #fff; background: #28775d; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }.primary-button:disabled { opacity: .7; cursor: wait; }
+.form-error, .form-success { margin: 0; font-size: 12px; }.form-error { color: #b34f3f; }.form-success { color: #347b5e; }
+.spinner { width: 16px; height: 16px; border: 2px solid #ffffff60; border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
+footer { min-height: 78px; display: flex; justify-content: space-between; align-items: center; gap: 15px; border-top: 1px solid #e9ece6; color: #9aa49d; font-size: 10px; }.footer-brand { font-size: 15px; }.footer-brand .brand-mark { width: 24px; height: 24px; font-size: 13px; border-radius: 8px 8px 8px 2px; }
+@media (max-width: 700px) { .page-shell { padding: 0 18px; }.topbar { height: 66px; }.topbar nav { gap: 12px; }.topbar nav a { font-size: 10px; }.connection { display: none; }.hero { padding: 36px 24px; margin: 20px 0 50px; }.form-grid { grid-template-columns: 1fr; }.card { padding: 22px 17px; }.section-heading { align-items: flex-start; flex-direction: column; }footer { min-height: 90px; flex-wrap: wrap; padding: 16px 0; }footer > span { order: 3; width: 100%; } }

@@ -1,0 +1,226 @@
+<div class="page-shell">
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="LotoLab início">
+      <span class="brand-mark" aria-hidden="true">L</span>
+      <span>Loto<span class="brand-light">Lab</span></span>
+    </a>
+    <nav aria-label="Navegação principal">
+      <a href="#frequencias">Frequências</a>
+      <a href="#gerador">Gerador</a>
+      <a href="#experimento">Feedback</a>
+      <a routerLink="/cadastro">Cadastro</a>
+      <a routerLink="/importacao">Importar histórico</a>
+      <a routerLink="/agentes">Agentes</a>
+      <a routerLink="/ml">Laboratório ML</a>
+    </nav>
+    <span class="connection"><span class="status-dot"></span> Análise estatística</span>
+  </header>
+
+  <main id="inicio">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">DADOS · CONTEXTO · EXPERIMENTAÇÃO</p>
+        <h1>Explore os resultados.<br /><span>Monte seus jogos.</span></h1>
+        <p class="hero-description">Consulte frequências observadas e gere combinações para seus experimentos. Estatística histórica descreve o passado, não prevê o próximo sorteio.</p>
+        <a class="hero-link" href="#frequencias">Ver análise <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <span class="hero-ball ball-one">07</span><span class="hero-ball ball-two">13</span>
+        <span class="hero-ball ball-three">21</span><span class="hero-ball ball-four">04</span>
+        <span class="hero-ball ball-five">18</span><span class="hero-star">✳</span>
+      </div>
+    </section>
+
+    <section id="frequencias" class="section-block">
+      <div class="latest-contest" aria-live="polite">
+        @if (latestLoading()) {
+          <span role="status">Consultando último concurso...</span>
+        } @else if (latestContest(); as latest) {
+          <span>Base atualizada: Concurso {{ latest.number | number }} realizado em {{ latest.drawDate | date:'dd/MM/yyyy' }}</span>
+        } @else if (latestError()) {
+          <span role="status">{{ latestError() }}</span>
+          @if (latestError() !== 'Ainda não há concursos cadastrados.') { <button class="text-button" (click)="loadLatestContest()">Tentar novamente</button> }
+        }
+      </div>
+      <div class="section-heading">
+        <div><p class="eyebrow">01 / PAINEL ESTATÍSTICO</p><h2>Frequência das dezenas</h2></div>
+        @if (historical(); as history) {
+          <div class="contest-total"><span class="total-value">{{ history.totalContests | number }}</span><span class="total-label">concursos no histórico</span></div>
+        }
+      </div>
+
+      <article class="card historical-card">
+        <div class="card-heading">
+          <div><h3>Histórico completo</h3><p>Ocorrências observadas em cada concurso armazenado.</p></div>
+          @if (historical(); as history) { <span class="soft-badge">{{ history.frequencies.length }} dezenas</span> }
+        </div>
+        @if (historyLoading()) {
+          <div class="state-message" role="status"><span class="spinner"></span> Carregando frequências...</div>
+        } @else if (historyError()) {
+          <div class="state-message error-state" role="alert"><span>{{ historyError() }}</span><button class="text-button" (click)="loadHistorical()">Tentar novamente</button></div>
+        } @else if (historical(); as history) {
+          @if (history.totalContests === 0) {
+            <div class="state-message empty-state">Ainda não há concursos disponíveis para análise.</div>
+          } @else {
+            <div class="number-grid" aria-label="Frequência histórica por dezena">
+              @for (item of history.frequencies; track item.number) {
+                <div class="frequency-tile">
+                  <span [class]="numberClass(item.number)">{{ item.number.toString().padStart(2, '0') }}</span>
+                  <span class="tile-percent">{{ item.percentage | number:'1.2-2' }}<small>%</small></span>
+                  <span class="tile-count">{{ item.occurrences | number }} vezes</span>
+                </div>
+              }
+            </div>
+          }
+        }
+      </article>
+
+      <article class="card recent-card">
+        <div class="card-heading recent-heading">
+          <div><p class="eyebrow">JANELA MÓVEL</p><h3>Recente × histórico</h3><p>Os concursos recentes são escolhidos pelo maior número de concurso.</p></div>
+          <label class="select-field">Concursos recentes
+            <select [value]="recentWindow()" (change)="onWindowChange($any($event.target).value)">
+              @for (window of windows; track window) { <option [value]="window">{{ window }} concursos</option> }
+            </select>
+          </label>
+        </div>
+        @if (recentLoading()) {
+          <div class="state-message" role="status"><span class="spinner"></span> Calculando janela recente...</div>
+        } @else if (recentError()) {
+          <div class="state-message error-state" role="alert"><span>{{ recentError() }}</span><button class="text-button" (click)="loadRecent()">Tentar novamente</button></div>
+        } @else if (recent(); as analysis) {
+          @if (analysis.analyzedRecentContests === 0) {
+            <div class="state-message empty-state">Ainda não há concursos para comparar.</div>
+          } @else {
+            <div class="table-meta">Analisando <strong>{{ analysis.analyzedRecentContests | number }}</strong> de {{ analysis.totalContests | number }} concursos disponíveis</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th scope="col">Dezena</th><th scope="col">Recente</th><th scope="col">Histórico</th><th scope="col">Diferença</th></tr></thead>
+                <tbody>
+                  @for (item of analysis.frequencies; track item.number) {
+                    <tr>
+                      <th scope="row"><span [class]="numberClass(item.number)">{{ item.number.toString().padStart(2, '0') }}</span></th>
+                      <td><strong>{{ item.recentPercentage | number:'1.2-2' }}%</strong><span class="cell-subtitle">{{ item.recentOccurrences }} ocorrências</span></td>
+                      <td>{{ item.historicalPercentage | number:'1.2-2' }}%</td>
+                      <td><span class="difference" [class.positive]="item.differencePercentagePoints > 0" [class.negative]="item.differencePercentagePoints < 0">{{ item.differencePercentagePoints > 0 ? '+' : '' }}{{ item.differencePercentagePoints | number:'1.2-2' }} p.p.</span></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        }
+      </article>
+    </section>
+
+    <section id="gerador" class="section-block generator-section">
+      <div class="section-heading">
+        <div><p class="eyebrow">02 / FERRAMENTA DE EXPERIMENTAÇÃO</p><h2>Gerador de jogos</h2></div>
+        <span class="soft-badge">Até 100 jogos por solicitação</span>
+      </div>
+      <div class="generator-layout">
+        <article class="card generator-form-card">
+          <div class="card-heading"><div><h3>Defina seus critérios</h3><p>Escolha uma geração uniforme ou um ajuste retrospectivo ao histórico.</p></div></div>
+          <form (ngSubmit)="generateGames()">
+            <label class="form-field">Estratégia de geração
+              <select name="generationMode" [(ngModel)]="generationMode">
+                <option value="random">Geração aleatória (uniforme)</option>
+                <option value="policy">Geração conforme política aprendida</option>
+                <option value="optimized">Geração otimizada por backtesting</option>
+              </select>
+                <small>A otimização mede resultados retrospectivos. O Gemini, se habilitado, apenas interpreta métricas calculadas; não prevê sorteios.</small>
+            </label>
+            @if (generationMode === 'random') {
+            <label class="form-field">Quantidade de jogos
+              <input type="number" name="quantity" min="1" max="100" required [(ngModel)]="quantity" />
+              <small>Escolha de 1 a 100 combinações.</small>
+            </label>
+            } @else {
+              <p class="criteria-hint">A busca tenta avaliar até 500 mutações. Os concursos mais novos ficam separados para validação e não orientam a escolha do jogo.</p>
+              <label class="form-field">Concurso-alvo (opcional)
+                <input type="number" name="targetContestNumber" min="1" placeholder="Próximo concurso" [(ngModel)]="targetContestNumber" />
+                <small>Por padrão, registra para o próximo concurso conhecido. Não é permitido escolher concurso já realizado.</small>
+              </label>
+            }
+            <fieldset class="parity-fields">
+              <legend>Distribuição de pares e ímpares</legend>
+              <label class="form-field">Pares
+                <input type="number" name="evenNumbers" min="0" max="12" required [(ngModel)]="evenNumbers" />
+              </label>
+              <span class="parity-plus" aria-hidden="true">+</span>
+              <label class="form-field">Ímpares
+                <input type="number" name="oddNumbers" min="0" max="13" required [(ngModel)]="oddNumbers" />
+              </label>
+            </fieldset>
+            <p class="criteria-hint" [class.invalid]="evenNumbers + oddNumbers !== 15">{{ evenNumbers + oddNumbers }} / 15 dezenas definidas</p>
+            <label class="form-field">Semente (opcional)
+              <input type="number" name="seed" placeholder="Ex.: 20261031" [(ngModel)]="seed" />
+              <small>Use a mesma semente para reproduzir os jogos.</small>
+            </label>
+            @if (gamesError()) { <p class="form-error" role="alert">{{ gamesError() }}</p> }
+            <button class="primary-button" type="submit" [disabled]="gamesLoading()">
+              @if (gamesLoading()) { <span class="spinner light-spinner"></span> Processando... }
+              @else if (generationMode === 'optimized') { Ajustar jogo ao histórico <span aria-hidden="true">→</span> }
+              @else if (generationMode === 'policy') { Gerar pela política ativa <span aria-hidden="true">→</span> }
+              @else { Gerar combinações <span aria-hidden="true">→</span> }
+            </button>
+          </form>
+          <p class="disclaimer"><span aria-hidden="true">ⓘ</span> Frequências passadas não aumentam a chance matemática de um jogo.</p>
+        </article>
+
+        <article class="card results-card">
+          <div class="card-heading"><div><h3>Seus jogos</h3><p>Dezenas ordenadas de forma crescente.</p></div>
+            @if (games(); as result) { <span class="soft-badge">{{ result.games.length }} jogos</span> }
+          </div>
+          @if (gamesLoading()) {
+            <div class="state-message" role="status"><span class="spinner"></span>
+              @if (generationMode === 'optimized') { Avaliando combinações únicas com separação temporal... }
+              @else if (generationMode === 'policy') { Consultando a versão champion e congelando a previsão... }
+              @else { Gerando combinações válidas... }
+            </div>
+          } @else if (gamesError()) {
+            <div class="state-message error-state" role="alert">{{ gamesError() }}</div>
+          } @else if (games(); as result) {
+            @if (result.policy; as policy) {
+              <div class="table-meta">Política champion v{{ policy.modelVersion }} · estratégia {{ policy.strategyKey }} · estado {{ policy.evaluationStatus }} · previsão #{{ policy.predictionId }} · interpretação {{ policy.interpretationStatus }}.</div>
+              <div class="table-meta">A política só seleciona estratégia com feedback prospectivo. Esta geração não estima probabilidade de prêmio.</div>
+            } @else if (result.backtesting; as evaluation) {
+              <div class="table-meta">Validação temporal: score <strong>{{ evaluation.fitnessScore | number }}</strong> em {{ evaluation.contestsEvaluated | number }} concursos posteriores · treino: {{ evaluation.trainingFitnessScore | number }} em {{ evaluation.trainingContestsEvaluated | number }} concursos · {{ evaluation.iterations }} candidatos avaliados · {{ evaluation.duplicateMutationsSkipped }} duplicatas ignoradas</div>
+              <div class="table-meta">Baseline aleatória: score {{ evaluation.randomBaselineFitnessScore | number }} em {{ evaluation.randomBaselineContestsEvaluated | number }} concursos, com {{ evaluation.candidateBudget }} candidatos. Evidência: {{ evaluation.evidenceStatus }}. Comparação: {{ evaluation.performanceStatus }}. Previsão #{{ evaluation.predictionId }}.</div>
+              @if (evaluation.walkForwardStrategyScore !== undefined) { <div class="table-meta">Walk-forward acumulado: estratégia {{ evaluation.walkForwardStrategyScore | number }} · baseline {{ evaluation.walkForwardBaselineScore | number }}.</div> }
+                @if (evaluation.aiInterpretationStatus === 'SUCCEEDED') {
+                  <div class="table-meta"><strong>Leitura experimental do Gemini:</strong> {{ evaluation.aiSummary }}
+                    @if (evaluation.aiHypotheses?.length) { <ul>@for (hypothesis of evaluation.aiHypotheses; track hypothesis) { <li>{{ hypothesis }}</li> }</ul> }
+                    <small>{{ evaluation.aiExplanation }}</small>
+                  </div>
+                } @else if (evaluation.aiInterpretationStatus) {
+                  <div class="table-meta">Interpretação Gemini: {{ evaluation.aiInterpretationStatus }}. O cálculo e a recomendação Java permanecem disponíveis.</div>
+                }
+              @if (evaluation.searchExhausted) { <p class="criteria-hint">O espaço de combinações permitido foi esgotado antes do limite de busca.</p> }
+            }
+            <div class="game-list">
+              @for (game of result.games; track $index) {
+                <div class="game-row">
+                  <span class="game-index">{{ ($index + 1).toString().padStart(2, '0') }}</span>
+                  <div class="game-numbers" [attr.aria-label]="'Jogo ' + ($index + 1)">
+                    @for (number of game; track number) { <span [class]="numberClass(number)">{{ number.toString().padStart(2, '0') }}</span> }
+                  </div>
+                  <button class="copy-button" type="button" [attr.aria-label]="'Copiar jogo ' + ($index + 1)" (click)="copyGame(game, $index)"><span aria-hidden="true">▢</span><span class="copy-text">Copiar</span></button>
+                </div>
+              }
+            </div>
+            @if (copyMessage()) { <p class="copy-message" role="status">{{ copyMessage() }}</p> }
+            <p class="probability-notice">{{ result.probabilityNotice }}</p>
+          } @else {
+            <div class="results-empty"><span class="empty-icon" aria-hidden="true">✳</span><p>Suas combinações vão aparecer aqui.</p><span>Escolha os critérios e gere seus jogos.</span></div>
+          }
+        </article>
+      </div>
+    </section>
+
+    <app-experiment-analysis></app-experiment-analysis>
+  </main>
+
+  <footer><a class="brand footer-brand" href="#inicio"><span class="brand-mark">L</span><span>Loto<span class="brand-light">Lab</span></span></a><span>Estatística descritiva para explorar dados observados.</span><a href="#inicio">Voltar ao início ↑</a></footer>
+</div>

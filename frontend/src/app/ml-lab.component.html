@@ -1,0 +1,79 @@
+<main class="ml-page">
+  <header class="ml-header">
+    <a routerLink="/" class="back-link">← Voltar ao painel</a>
+    <p class="eyebrow">TREINAMENTO · MODELOS · INFERÊNCIA</p>
+    <h1>Laboratório de Machine Learning</h1>
+    <p>Treine e recarregue modelos logísticos experimentais, examine a avaliação temporal e gere rankings para concursos futuros.</p>
+  </header>
+
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+  @if (message()) { <p class="notice" role="status">{{ message() }}</p> }
+
+  <section class="panel">
+    <h2>Treinar novo modelo</h2>
+    <p>O treinamento ocorre em job de fundo. Os modelos permanecem experimentais e não são promovidos automaticamente.</p>
+    <div class="form-grid">
+      <label>Cutoff exclusivo (opcional)<input type="number" min="1" [(ngModel)]="cutoff" placeholder="Usar próximo concurso"></label>
+      <label>Semente<input type="number" [(ngModel)]="seed"></label>
+    </div>
+    <label class="confirm"><input type="checkbox" [(ngModel)]="confirmed"> Entendo que a validação retrospectiva não demonstra capacidade de prever sorteios independentes.</label>
+    <button type="button" (click)="train()" [disabled]="loading() || !confirmed">{{ loading() ? 'Processando…' : 'Enfileirar treinamento' }}</button>
+    @if (job(); as current) {
+      <div class="job-card"><strong>Job #{{ current.id }} · {{ current.status }}</strong>
+        <span>tentativas {{ current.attempts }}/{{ current.maxAttempts }} · cutoff {{ current.trainingCutoffExclusive }}</span>
+        @if (current.modelId) { <span>modelo #{{ current.modelId }}</span> }
+        @if (current.errorCategory) { <span class="error">{{ current.errorCategory }}</span> }
+      </div>
+    }
+  </section>
+
+  <section class="panel">
+    <div class="panel-title"><div><h2>Modelos persistidos</h2><p>Selecione um modelo para recarregar o artefato e conferir seu checksum e pesos.</p></div>
+      <button type="button" class="secondary" (click)="loadModels()" [disabled]="loading()">Atualizar</button></div>
+    @if (loading() && models().length === 0) { <p>Carregando modelos…</p> }
+    @else if (models().length === 0) { <p class="empty">Nenhum modelo treinado está persistido. Enfileire um treinamento acima.</p> }
+    @else {
+      <div class="table-scroll"><table><thead><tr><th>ID / versão</th><th>Treino</th><th>Exemplos</th><th>Checksum</th><th></th></tr></thead><tbody>
+        @for (model of models(); track model.id) { <tr><td>#{{ model.id }} · v{{ model.version }}<small>{{ model.status }} · {{ model.algorithmVersion }}</small></td>
+          <td>{{ model.trainingFirstContest }}–{{ model.trainingLastContest }}<small>cutoff {{ model.trainingCutoffExclusive }}</small></td>
+          <td>{{ model.trainingExampleCount }}</td><td><code>{{ model.checksum }}</code></td>
+          <td><button type="button" class="secondary" (click)="openModel(model)">Recarregar</button></td></tr> }
+      </tbody></table></div>
+    }
+    @if (selectedModel(); as model) {
+      <div class="model-detail"><h3>Modelo #{{ model.id }}, versão {{ model.version }} carregado</h3>
+        <p>Checksum validado: <code>{{ model.checksum }}</code> · {{ model.artifact.numberModels.length }} classificadores · {{ model.artifact.epochs }} épocas</p>
+        <details><summary>Parâmetros aprendidos</summary><div class="weights">@for (classifier of model.artifact.numberModels; track classifier.number) {
+          <span><b>{{ classifier.number | number:'2.0-0' }}</b> intercepto {{ classifier.intercept | number:'1.5-5' }} · coeficientes [{{ classifier.coefficients.join(', ') }}]</span>
+        }</div></details>
+        <h3>Avaliação temporal walk-forward</h3>
+        <div class="table-scroll"><table><thead><tr><th>Divisão</th><th>Treino → alvo</th><th>Modelo</th><th>Baseline uniforme</th><th>Diferença pareada · IC 95%</th></tr></thead><tbody>
+          @for (evaluation of model.evaluations; track evaluation.split) { <tr><td>{{ evaluation.split }} (n={{ evaluation.sampleCount }})</td>
+            <td>{{ evaluation.trainingLastContest }} → {{ evaluation.targetFirstContest }}–{{ evaluation.targetLastContest }}</td>
+            <td>{{ evaluation.meanModelHits | number:'1.3-3' }} acertos médios</td><td>{{ evaluation.meanUniformHits | number:'1.3-3' }}</td>
+            <td>{{ evaluation.meanPairedDifference | number:'1.3-3' }} [{{ evaluation.confidence95Lower | number:'1.3-3' }}, {{ evaluation.confidence95Upper | number:'1.3-3' }}]</td></tr> }
+        </tbody></table></div>
+      </div>
+    }
+  </section>
+
+  <section class="panel">
+    <h2>Previsão experimental</h2>
+    <p>A inferência ordena dezenas segundo os scores do modelo. Scores não são probabilidades de prêmio.</p>
+    <div class="form-grid">
+      <label>Concurso-alvo (opcional)<input type="number" min="1" [(ngModel)]="target" placeholder="Próximo concurso disponível"></label>
+      <label>Semente<input type="number" [(ngModel)]="seed"></label>
+      <label>Dezenas pares<input type="number" min="0" max="15" [(ngModel)]="evenNumbers"></label>
+      <label>Dezenas ímpares<input type="number" min="0" max="15" [(ngModel)]="oddNumbers"></label>
+    </div>
+    <button type="button" (click)="predict()" [disabled]="loading() || !selectedModel()">{{ loading() ? 'Calculando…' : 'Gerar ranking experimental' }}</button>
+    @if (prediction(); as result) {
+      <div class="prediction-result"><h3>Previsão experimental #{{ result.predictionId }}</h3>
+        <p>Modelo #{{ result.modelId }} v{{ result.modelVersion }} · alvo {{ result.targetContestNumber }} · cutoff {{ result.trainingCutoffExclusive }}</p>
+        <div class="numbers">@for (number of result.numbers; track number) { <span>{{ number | number:'2.0-0' }}</span> }</div>
+        <p>Baseline uniforme com os mesmos filtros: <strong>{{ result.uniformBaselineNumbers.join(' · ') }}</strong></p>
+        <p class="notice">{{ result.notice }}</p>
+      </div>
+    }
+  </section>
+</main>

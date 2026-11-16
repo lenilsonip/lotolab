@@ -1,0 +1,30 @@
+flowchart LR
+  UI[Angular standalone components] -->|HTTP via LotolabApiService| WEB[REST input adapters]
+  WEB --> IN[Contest input ports]
+  IN --> CAPP[ContestApplicationService]
+  CAPP --> COUT[Contest output ports]
+  COUT --> JDBC[JdbcTemplate adapter]
+  JDBC --> PG[(PostgreSQL / Flyway V1–V9)]
+  CAPP --> DOMAIN[Shared framework-free domain records]
+  CAPP --> HOOK[ContestResearchTrigger output port]
+  HOOK --> TRIGGER[ContestResearchTriggerAdapter]
+  TRIGGER --> MINING[research.MinePatternsUseCase]
+  WEB --> MINING
+  CRON[research.PatternMinerAgent] --> MINING
+  MINING --> RESEARCH_APP[RunPatternMiningService]
+  RESEARCH_APP --> RESEARCH_DOMAIN[PatternMiningAlgorithm walk-forward-2]
+  RESEARCH_APP --> RESEARCH_PORTS[Research output ports]
+  RESEARCH_PORTS --> RESEARCH_TX[Spring TransactionTemplate + JDBC]
+  RESEARCH_TX --> PG
+  RESEARCH_APP --> RESEARCH_EVENT[Spring completion event]
+  RESEARCH_EVENT --> INTERPRET[AgentInterpretationService BEFORE_COMMIT]
+  INTERPRET --> JOBS
+  WEB -. Other feature APIs .-> APP[Legacy application services]
+  APP --> PORTS[Shared application.port interfaces]
+  PORTS --> JDBC
+  APP --> LOG[Infrastructure LogContext in some services]
+  JDBC --> EVENTS[Spring ApplicationEventPublisher]
+  EVENTS --> LEARN[Transactional listeners in application]
+  APP --> JOBS[Durable agent/ML jobs]
+  JOBS --> GEMINI[Optional Gemini RestClient]
+  APP -. ML pipeline separate from optimized generator .-> ML[Logistic training/inference]

@@ -1,0 +1,55 @@
+<div class="page-shell">
+  <header class="topbar">
+    <a class="brand" routerLink="/" aria-label="LotoLab início">
+      <span class="brand-mark" aria-hidden="true">L</span>
+      <span>Loto<span class="brand-light">Lab</span></span>
+    </a>
+    <nav aria-label="Navegação principal">
+      <a routerLink="/">Painel estatístico</a>
+      <a routerLink="/cadastro" aria-current="page">Cadastro</a>
+      <a routerLink="/importacao">Importar CSV</a>
+    </nav>
+    <span class="connection"><span class="status-dot"></span> Cadastro manual</span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">DADOS · CONTEXTO · REGISTRO</p>
+      <h1>Cadastre um<br /><span>novo concurso.</span></h1>
+      <p class="hero-description">Registre o resultado observado para atualizar as consultas e análises do LotoLab.</p>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading">
+        <div><p class="eyebrow">04 / ATUALIZAÇÃO DO HISTÓRICO</p><h2>Dados do concurso</h2></div>
+        <span class="soft-badge">15 dezenas distintas de 1 a 25</span>
+      </div>
+      <article class="card form-card">
+        <form (ngSubmit)="submit()">
+          <div class="form-grid">
+            <label class="form-field" for="contestNumber">Número do Concurso
+              <input id="contestNumber" type="number" name="contestNumber" min="1" step="1" required
+                [(ngModel)]="contestNumber" />
+            </label>
+            <label class="form-field" for="drawDate">Data do Sorteio
+              <input id="drawDate" type="date" name="drawDate" required [(ngModel)]="drawDate" />
+            </label>
+          </div>
+          <label class="form-field" for="drawnNumbers">15 dezenas sorteadas
+            <textarea id="drawnNumbers" name="drawnNumbers" rows="4" required
+              placeholder="Ex.: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15"
+              [(ngModel)]="drawnNumbersInput"></textarea>
+            <small>Separe as dezenas por vírgula, espaço ou ponto e vírgula. A API também valida os dados.</small>
+          </label>
+          @if (errorMessage()) { <p class="form-error" role="alert">{{ errorMessage() }}</p> }
+          @if (successMessage()) { <p class="form-success" role="status">{{ successMessage() }}</p> }
+          <button class="primary-button" type="submit" [disabled]="loading()">
+            @if (loading()) { <span class="spinner light-spinner"></span> Salvando... }
+            @else { Salvar Concurso <span aria-hidden="true">→</span> }
+          </button>
+        </form>
+      </article>
+    </section>
+  </main>
+  <footer><a class="brand footer-brand" routerLink="/"><span class="brand-mark">L</span><span>Loto<span class="brand-light">Lab</span></span></a><span>Resultados registrados atualizam as análises do histórico.</span><a routerLink="/">Voltar ao painel ↑</a></footer>
+</div>

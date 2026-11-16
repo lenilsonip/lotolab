@@ -1,0 +1,15 @@
+flowchart LR
+  WEB[HTTP / Angular] --> IN[Inbound adapters]
+  SCHED[Scheduler / worker] --> IN
+  IN --> USE[Application input ports and use cases]
+  USE --> DOM[Domain model and policies]
+  USE --> OUT[Application-owned output ports]
+  OUT --> PGAD[PostgreSQL JDBC adapter]
+  OUT --> AIAD[Gemini gateway adapter]
+  OUT --> OBS[Logging/clock/job adapters]
+  PGAD --> PG[(PostgreSQL)]
+  BOOT[Spring bootstrap/configuration] -. wires .-> IN
+  BOOT -. wires .-> USE
+  BOOT -. wires .-> PGAD
+  BOOT -. wires .-> AIAD
+  DOM -. no framework imports .-> DOM

@@ -1,0 +1,76 @@
+<main class="agent-page">
+  <header class="agent-header">
+    <a routerLink="/" class="back-link">← Voltar ao painel</a>
+    <p class="eyebrow">PESQUISA · EVIDÊNCIA · AVALIAÇÃO</p>
+    <h1>Agentes experimentais</h1>
+    <p>Os resultados mostram desempenho retrospectivo em dados conhecidos; não demonstram maior chance matemática em sorteios futuros.</p>
+  </header>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <div><h2>Agente 1 · Pesquisador de padrões</h2><p>Hipóteses avaliadas em janelas temporais contra uma baseline aleatória.</p></div>
+      <button type="button" (click)="mine()" [disabled]="mining()">{{ mining() ? 'Minerando…' : 'Executar pesquisa' }}</button>
+    </div>
+    @if (message()) { <p class="notice" role="status">{{ message() }}</p> }
+    @if (loading()) { <p role="status">Carregando evidências…</p> }
+    @else if (error()) { <p class="error" role="alert">{{ error() }} <button type="button" (click)="refresh()">Tentar novamente</button></p> }
+    @else if (insights().length === 0) { <p class="empty">Ainda não há execução de pesquisa registrada.</p> }
+    @else {
+      <div class="table-wrap"><table>
+        <thead><tr><th>Hipótese</th><th>Treino</th><th>Validação</th><th>Erro da hipótese</th><th>Baseline</th><th>Estado</th></tr></thead>
+        <tbody>@for (item of insights(); track item.id) {
+          <tr><td><strong>{{ item.patternType }}</strong><small>v{{ item.algorithmVersion }} · {{ item.hypothesisKey }}</small>
+            <small>{{ item.description }}</small><details><summary>Dados calculados</summary><code>{{ item.evidenceJson }}</code></details></td>
+            <td>{{ item.trainingFirstContest }}–{{ item.trainingLastContest }}</td>
+            <td>{{ item.validationFirstContest }}–{{ item.validationLastContest }} (n={{ item.sampleSize }})</td>
+            <td>{{ item.observedMetric | number:'1.2-4' }}</td><td>{{ item.baselineMetric | number:'1.2-4' }}</td>
+            <td><span class="badge">{{ item.evidenceStatus }}</span></td></tr>
+        }</tbody>
+      </table></div>
+    }
+  </section>
+
+  <section class="panel interpretation-panel" aria-live="polite">
+    <div class="panel-heading"><div><h2>Interpretação assistida</h2><p>O Gemini interpreta evidências calculadas e gravadas pelo backend; não calcula métricas nem altera resultados.</p></div>
+      @if (interpretation()) { <span class="badge">{{ interpretation()?.status }} · {{ interpretation()?.model }}</span> }
+    </div>
+    @if (job(); as currentJob) { <p class="notice" role="status">Job #{{ currentJob.id }} · {{ currentJob.status }} · tentativa {{ currentJob.attempts }}/{{ currentJob.maxAttempts }}
+      @if (currentJob.errorCategory) { · erro: {{ currentJob.errorCategory }} }
+    </p> }
+    @if (!interpretation()) { <p class="empty">Nenhuma interpretação disponível. Habilite o Gemini e execute uma pesquisa para solicitar uma.</p> }
+    @else if (interpretation()?.status === 'SUCCEEDED') {
+      <h3>Resumo</h3><p>{{ interpretation()?.summary }}</p>
+      @if (interpretation()?.hypotheses?.length) { <h3>Hipóteses para testar</h3><ul>@for (hypothesis of interpretation()?.hypotheses; track hypothesis) { <li>{{ hypothesis }}</li> }</ul> }
+      <h3>Limitações</h3><p>{{ interpretation()?.explanation }}</p>
+    } @else { <p class="empty">Interpretação não gerada: {{ interpretation()?.status }}. Estado estatístico e evidências continuam disponíveis acima.</p> }
+  </section>
+
+  @if (learning(); as policy) {
+    <section class="panel">
+      <div class="panel-heading"><div><h2>Agente Aprendiz · Política versionada</h2>
+        <p>Champion v{{ policy.version }}: {{ policy.strategyKey }} · {{ policy.sampleSize }} resultados prospectivos · média {{ policy.meanHits | number:'1.2-3' }} acertos</p>
+        <p>Aprendizado em avaliação: {{ policy.learningSampleSize }} resultados · média {{ policy.learningMeanHits | number:'1.2-3' }} acertos
+          @if (policy.candidateStatus) { · candidato {{ policy.candidateStrategyKey }} ({{ policy.candidateStatus }}) }
+        </p>
+      </div><span class="badge">{{ policy.status }}</span></div>
+      <p>{{ policy.scientificNotice }} A promoção exige ao menos 100 previsões congeladas antes do sorteio e limite inferior de 95% acima de 9 acertos médios.</p>
+      @if (policy.recentEvents.length) { <div class="table-wrap"><table><thead><tr><th>Concurso</th><th>Previsão</th><th>Acertos</th><th>Amostra</th><th>IC 95%</th><th>Decisão</th><th>Motivo</th></tr></thead>
+        <tbody>@for (event of policy.recentEvents; track event.id) { <tr><td>{{ event.contestNumber }}</td><td>#{{ event.attemptId }}</td><td>{{ event.observedHits }}</td><td>{{ event.sampleSize }}</td><td>{{ event.lower95 | number:'1.2-3' }}–{{ event.upper95 | number:'1.2-3' }}</td><td>{{ event.decision }}</td><td>{{ event.reason }}</td></tr> }</tbody></table></div> }
+      @else { <p class="empty">Ainda não há feedback prospectivo elegível. O champion uniforme permanece ativo.</p> }
+    </section>
+  }
+
+  <section class="panel">
+    <div class="panel-heading"><div><h2>Agente 2 · Previsões e avaliações</h2><p>Combinações persistidas, concurso-alvo e resultado observado.</p></div><button class="secondary" type="button" (click)="refresh()" [disabled]="loading()">Atualizar</button></div>
+    @if (!loading() && predictions().length === 0) { <p class="empty">Nenhuma previsão registrada ainda. Use a geração otimizada no painel.</p> }
+    @if (predictions().length > 0) { <div class="table-wrap"><table>
+      <thead><tr><th>Previsão</th><th>Criada em</th><th>Alvo</th><th>Dezenas</th><th>Estratégia / evidência</th><th>Acertos</th><th>Estado</th><th>Justificativa</th></tr></thead>
+      <tbody>@for (item of predictions(); track item.id) {
+        <tr><td>#{{ item.id }}</td><td>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</td><td>{{ item.targetContestNumber }}</td>
+          <td class="numbers">{{ item.predictedNumbers.join(' · ') }}</td><td>{{ item.strategyVersion || item.source }} / {{ item.evidenceStatus }}</td>
+          <td>{{ item.hits ?? '—' }}</td><td><span class="badge">{{ item.status }} / {{ item.performanceStatus }}</span><small> corte {{ item.sourceCutoffContest ?? '—' }} · walk-forward {{ item.walkForwardStrategyScore ?? '—' }} / {{ item.walkForwardBaselineScore ?? '—' }}</small></td>
+          <td>{{ item.aiSummary || item.aiExplanation || item.aiInterpretationStatus || 'Sem interpretação' }}</td></tr>
+      }</tbody>
+    </table></div> }
+  </section>
+</main>

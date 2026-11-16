@@ -1,0 +1,58 @@
+<section id="experimento" class="section-block">
+  <div class="section-heading">
+    <div><p class="eyebrow">03 / MOTOR DE FEEDBACK</p><h2>Análise de experimento</h2></div>
+    <span class="soft-badge">Comparação com resultado real</span>
+  </div>
+
+  <div class="analysis-layout">
+    <article class="card analysis-form-card">
+      <div class="card-heading">
+        <div><h3>Compare uma previsão</h3><p>Informe as dezenas do jogo e o concurso correspondente.</p></div>
+      </div>
+      <form (ngSubmit)="analyze()">
+        <label class="form-field" for="predictedNumbers">Dezenas previstas
+          <textarea id="predictedNumbers" name="predictedNumbers" rows="4" required
+            placeholder="Ex.: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15"
+            [(ngModel)]="predictedNumbersInput"></textarea>
+          <small>Digite 15 dezenas distintas de 1 a 25, separadas por vírgula ou espaço.</small>
+        </label>
+        <label class="form-field" for="actualContestNumber">Número do concurso real
+          <input id="actualContestNumber" type="number" name="actualContestNumber" min="1" required
+            [(ngModel)]="actualContestNumber" />
+        </label>
+        @if (errorMessage()) { <p class="form-error" role="alert">{{ errorMessage() }}</p> }
+        <button class="primary-button" type="submit" [disabled]="loading()">
+          @if (loading()) { <span class="spinner light-spinner"></span> Analisando... }
+          @else { Analisar Falha <span aria-hidden="true">→</span> }
+        </button>
+        <button class="secondary-button" type="button" (click)="savePrediction()" [disabled]="savingPrediction()">
+          @if (savingPrediction()) { <span class="spinner"></span> Salvando previsão... }
+          @else { Salvar Previsão no Histórico }
+        </button>
+        @if (predictionSaveError()) { <p class="form-error" role="alert">{{ predictionSaveError() }}</p> }
+        @if (predictionSaveMessage()) { <p class="save-success" role="status">{{ predictionSaveMessage() }}</p> }
+      </form>
+      <p class="disclaimer"><span aria-hidden="true">ⓘ</span> O resultado descreve a comparação; não prevê sorteios futuros.</p>
+    </article>
+
+    <article class="card prompt-card" aria-live="polite">
+      <div class="card-heading"><div><h3>Análise da IA</h3><p>Resposta gerada pelo Google Gemini a partir da comparação.</p></div></div>
+      @if (loading()) {
+        <div class="state-message" role="status"><span class="spinner"></span> Analisando padrões com o Gemini...</div>
+      } @else if (aiFeedback()) {
+        <div class="ai-feedback" aria-label="Análise da IA" aria-live="polite">{{ aiFeedback() }}</div>
+      } @else if (promptText()) {
+        <div class="prompt-fallback">
+          <p role="status">Gemini não configurado. O prompt está pronto para análise manual. Defina GEMINI_API_KEY para habilitar a resposta automática.</p>
+          <label class="form-field" for="analysisPrompt">Prompt para copiar
+            <textarea id="analysisPrompt" rows="8" readonly [value]="promptText()"></textarea>
+          </label>
+          <button class="secondary-button" type="button" (click)="copyPrompt()">Copiar prompt</button>
+          @if (promptCopyMessage()) { <p role="status">{{ promptCopyMessage() }}</p> }
+        </div>
+      } @else {
+        <div class="results-empty"><span class="empty-icon" aria-hidden="true">✳</span><p>A análise da IA aparecerá aqui.</p><span>Envie uma previsão para comparar com o resultado do concurso.</span></div>
+      }
+    </article>
+  </div>
+</section>

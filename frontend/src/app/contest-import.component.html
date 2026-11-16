@@ -1,0 +1,69 @@
+<div class="page-shell">
+  <header class="topbar">
+    <a class="brand" routerLink="/" aria-label="LotoLab início"><span class="brand-mark">L</span><span>Loto<span class="brand-light">Lab</span></span></a>
+    <nav aria-label="Navegação principal"><a routerLink="/">Painel estatístico</a><a routerLink="/cadastro">Cadastro manual</a><a routerLink="/importacao" aria-current="page">Importar CSV</a></nav>
+    <span class="connection">Importação administrativa</span>
+  </header>
+  <main>
+    <section class="hero"><p class="eyebrow">HISTÓRICO · VALIDAÇÃO · IMPORTAÇÃO</p><h1>Atualize o<br /><span>histórico.</span></h1><p class="hero-description">Valide um CSV e revise novos concursos, duplicidades, conflitos e linhas inválidas antes de confirmar a gravação.</p></section>
+
+    <section class="section-block">
+      <div class="section-heading"><div><p class="eyebrow">01 / ARQUIVO E PRÉVIA</p><h2>Revisar antes de gravar</h2></div><span class="soft-badge">CSV UTF-8 · até 1 MB · separador ;</span></div>
+      <article class="card form-card">
+        <div class="form-grid">
+          <label class="form-field" for="adminToken">Token administrativo local
+            <input id="adminToken" type="password" autocomplete="off" [value]="token()" (input)="token.set($any($event.target).value)" />
+            <small>Mínimo de 32 caracteres. Usado apenas nesta sessão e enviado no cabeçalho; não é armazenado pelo navegador.</small>
+          </label>
+          <label class="form-field" for="csvFile">Arquivo CSV histórico
+            <input id="csvFile" type="file" accept=".csv,text/csv" (change)="onFileSelected($event)" />
+            <small>Formato esperado: Concurso;Data;bola 1…bola 15, datas dd/MM/yyyy. Nome: {{ selectedFile()?.name ?? 'nenhum arquivo selecionado' }}</small>
+          </label>
+        </div>
+        @if (errorMessage()) { <p class="form-error" role="alert">{{ errorMessage() }}</p> }
+        @if (!preview() && !report()) {
+          <button class="primary-button" type="button" [disabled]="loading()" (click)="requestPreview()">
+            @if (loading()) { <span class="spinner light-spinner"></span> Validando CSV... } @else { Validar e gerar prévia → }
+          </button>
+        }
+      </article>
+    </section>
+
+    @if (preview(); as data) {
+      <section class="section-block" aria-live="polite">
+        <div class="section-heading"><div><p class="eyebrow">02 / RESULTADO DA PRÉVIA</p><h2>Classificação do arquivo</h2></div><span class="soft-badge">Somente leitura</span></div>
+        <article class="card">
+          <dl class="summary-grid">
+            <div><dt>Linhas lidas</dt><dd>{{ data.linesRead }}</dd></div><div><dt>Válidas</dt><dd>{{ data.validLines }}</dd></div>
+            <div><dt>Novos concursos</dt><dd>{{ data.wouldInsert }}</dd></div><div><dt>Já existentes e idênticos</dt><dd>{{ data.alreadyExisting }}</dd></div>
+            <div><dt>Conflitos</dt><dd>{{ data.conflictLines }}</dd></div><div><dt>Inválidas / rejeitadas</dt><dd>{{ data.rejectedLines }}</dd></div>
+          </dl>
+          @if (data.rejections.length || data.conflicts.length || data.warnings.length) {
+            <div class="issue-lists">
+              @for (group of issueGroups(data); track group.title) {
+                @if (group.issues.length) { <section><h3>{{ group.title }}</h3><ul>@for (issue of group.issues; track $index) { <li>Linha {{ issue.lineNumber }}: {{ issue.message }}</li> }</ul></section> }
+              }
+            </div>
+          }
+          @if (data.wouldInsert > 0 && !data.fileStructureRejected) {
+            @if (!confirming()) { <button class="primary-button" type="button" (click)="beginConfirmation()">Revisar e confirmar importação de {{ data.wouldInsert }} concursos →</button> }
+            @else {
+              <div class="confirmation" role="alertdialog" aria-label="Confirmar importação"><h3>Confirmação explícita</h3><p>A importação não sobrescreve concursos existentes. Linhas idênticas serão ignoradas; conflitos e inválidas serão reportados. Cada concurso usa uma transação própria.</p><button class="primary-button" type="button" [disabled]="importing()" (click)="confirmImport()">@if (importing()) { Importando... } @else { Confirmar e gravar somente novos concursos }</button><button class="secondary-button" type="button" (click)="cancelConfirmation()">Cancelar</button></div>
+            }
+          } @else if (!data.fileStructureRejected) { <p class="empty-note">Nenhum concurso novo para gravar.</p> }
+        </article>
+      </section>
+    }
+
+    @if (report(); as result) {
+      <section class="section-block" aria-live="polite"><div class="section-heading"><div><p class="eyebrow">03 / RESULTADO DA IMPORTAÇÃO</p><h2>Execução concluída</h2></div></div>
+        <article class="card"><dl class="summary-grid"><div><dt>Linhas lidas</dt><dd>{{ result.linesRead }}</dd></div><div><dt>Inseridos</dt><dd>{{ result.newContests }}</dd></div><div><dt>Já existentes</dt><dd>{{ result.alreadyExisting }}</dd></div><div><dt>Rejeitados</dt><dd>{{ result.rejectedLines }}</dd></div><div><dt>Conflitos</dt><dd>{{ result.conflictLines }}</dd></div><div><dt>Não processadas</dt><dd>{{ result.notProcessedLines }}</dd></div></dl>
+          @if (result.persistenceAborted) { <p class="form-error" role="alert">O processamento parou devido a uma falha de persistência. Os concursos concluídos antes da falha permanecem íntegros; reprocessar o mesmo CSV é seguro.</p> }
+          @for (group of reportGroups(result); track group.title) { @if (group.issues.length) { <section class="issue-lists"><h3>{{ group.title }}</h3><ul>@for (issue of group.issues; track $index) { <li>Linha {{ issue.lineNumber }}: {{ issue.message }}</li> }</ul></section> } }
+          <button class="secondary-button" type="button" (click)="requestPreview()">Gerar nova prévia</button>
+        </article>
+      </section>
+    }
+  </main>
+  <footer><a class="brand footer-brand" routerLink="/"><span class="brand-mark">L</span><span>Loto<span class="brand-light">Lab</span></span></a><span>Revise a procedência e as condições de redistribuição dos dados.</span><a routerLink="/cadastro">Cadastrar um concurso manualmente ↑</a></footer>
+</div>

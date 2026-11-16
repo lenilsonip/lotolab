@@ -1,0 +1,44 @@
+:host { display: block; }
+.section-block { margin: 0 0 78px; scroll-margin-top: 30px; }
+.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+h2 { margin: 0; color: #21362e; font-size: clamp(26px, 3vw, 34px); letter-spacing: -1.2px; font-weight: 650; }
+.eyebrow { color: #49846d; font-size: 10px; font-weight: 750; letter-spacing: 1.7px; margin: 0 0 13px; }
+.soft-badge { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 20px; color: #50725f; background: #edf4ee; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.analysis-layout { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(360px, 1.1fr); gap: 19px; align-items: stretch; }
+.card { border: 1px solid #e8eae4; border-radius: 15px; background: #fff; box-shadow: 0 5px 20px #102e2410; padding: 25px 28px; }
+.card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 22px; }
+h3 { margin: 0 0 5px; color: #263a32; font-size: 17px; letter-spacing: -.25px; font-weight: 700; }
+.card-heading p { margin: 0; color: #89938d; font-size: 12px; line-height: 1.5; }
+form { display: flex; flex-direction: column; gap: 18px; }
+.form-field { display: flex; flex-direction: column; gap: 7px; color: #718078; font-size: 11px; font-weight: 650; }
+.form-field input, .form-field textarea, .prompt-output { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #dfe5df; border-radius: 8px; outline: none; color: #2e4439; background: #fff; font: inherit; font-size: 13px; resize: vertical; }
+.form-field input { min-height: 40px; }
+.form-field input:focus, .form-field textarea:focus { border-color: #4f9979; box-shadow: 0 0 0 3px #4f99791c; }
+.form-field small { color: #98a29c; font-size: 10px; font-weight: 450; line-height: 1.4; }
+.primary-button { display: flex; align-items: center; justify-content: center; gap: 13px; min-height: 46px; border: 0; border-radius: 9px; color: #fff; background: #28775d; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s, transform .15s; }
+.primary-button:hover:not(:disabled) { background: #20664f; transform: translateY(-1px); }
+.primary-button:disabled { opacity: .7; cursor: wait; }
+.secondary-button { min-height: 42px; padding: 0 14px; border: 1px solid #b9d0c1; border-radius: 9px; color: #347359; background: #f5f8f4; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.secondary-button:hover:not(:disabled) { background: #edf4ee; }.secondary-button:disabled { opacity: .7; cursor: wait; }
+.save-success { margin: -8px 0 0; color: #347b5e; font-size: 11px; }
+.disclaimer { display: flex; gap: 8px; align-items: flex-start; margin: 19px 0 0; color: #96a099; font-size: 10px; line-height: 1.5; }
+.disclaimer span { color: #91aa9a; }
+.form-error { margin: -7px 0; color: #b34f3f; font-size: 11px; }
+.prompt-card { min-height: 310px; }
+.ai-feedback { min-height: 185px; padding: 16px; border-radius: 9px; color: #40544a; background: #f8f9f6; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+.results-empty { min-height: 215px; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #99a59d; text-align: center; }
+.empty-icon { margin-bottom: 9px; color: #8eaf9a; font-size: 28px; }
+.results-empty p { margin: 0 0 5px; color: #66796d; font-size: 13px; font-weight: 650; }
+.results-empty span:last-child { font-size: 11px; }
+.state-message { min-height: 100px; display: flex; align-items: center; justify-content: center; gap: 10px; color: #86938b; font-size: 12px; text-align: center; }
+.spinner { width: 16px; height: 16px; border: 2px solid #dce8df; border-top-color: #428367; border-radius: 50%; animation: spin .7s linear infinite; }
+.light-spinner { width: 13px; height: 13px; border-color: #ffffff60; border-top-color: #fff; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 900px) { .analysis-layout { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+  .section-block { margin-bottom: 56px; }
+  .section-heading { align-items: flex-start; }
+  .card { padding: 19px 16px; border-radius: 12px; }
+  .card-heading p { max-width: 260px; font-size: 10px; }
+}
